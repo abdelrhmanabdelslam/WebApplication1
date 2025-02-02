@@ -1,0 +1,26 @@
+{
+    "resource": "/{proxy+}",
+    "path": "/weatherforecast",
+    "httpMethod": "GET",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "queryStringParameters": {},
+    "pathParameters": {},
+    "stageVariables": {},
+    "requestContext": {
+      "accountId": "123456789012",
+      "resourceId": "abcdef",
+      "stage": "prod",
+      "requestId": "unique-request-id",
+      "identity": {
+        "sourceIp": "127.0.0.1",
+        "userAgent": "curl"
+      },
+      "resourcePath": "/{proxy+}",
+      "httpMethod": "GET"
+    },
+    "body": null,
+    "isBase64Encoded": false
+  }
+  
