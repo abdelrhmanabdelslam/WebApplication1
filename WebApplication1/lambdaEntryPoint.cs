@@ -1,13 +1,25 @@
 using Amazon.Lambda.AspNetCoreServer;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
 
 namespace WebApplication1
 {
-    public class LambdaEntryPoint : APIGatewayHttpApiV2ProxyFunction
+    /// <summary>
+    /// LambdaEntryPoint inherits from APIGatewayProxyFunction which sets up the
+    /// ASP.NET Core pipeline for handling API Gateway requests.
+    /// </summary>
+    public class LambdaEntryPoint : APIGatewayProxyFunction
     {
-        protected override void Init(IWebHostBuilder builder)
+        /// <summary>
+        /// Override the CreateHostBuilder so that it uses our Startup class.
+        /// </summary>
+        protected override IHostBuilder CreateHostBuilder()
         {
-            builder.UseStartup<Startup>();
+            return Host.CreateDefaultBuilder()
+                       .ConfigureWebHostDefaults(webBuilder =>
+                       {
+                           webBuilder.UseStartup<Startup>();
+                       });
         }
     }
 }
