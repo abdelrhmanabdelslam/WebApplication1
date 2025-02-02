@@ -1,30 +1,20 @@
-# See https://aka.ms/customizecontainer to learn how to customize your debug container and how Visual Studio uses this Dockerfile to build your images for faster debugging.
-
-# This stage is used when running from VS in fast mode (Default for Debug configuration)
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
-USER app
-WORKDIR /app
-EXPOSE 8080
-EXPOSE 8081
-
-
-# This stage is used to build the service project
+# Stage 1: Build and publish the application
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
-ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["WebApplication1/WebApplication1.csproj", "WebApplication1/"]
-RUN dotnet restore "./WebApplication1/WebApplication1.csproj"
+
+# Copy and restore only the project file(s)
+COPY ["WebApplication1.csproj", "./"]
+RUN dotnet restore "WebApplication1.csproj"
+
+# Copy the remaining files and build
 COPY . .
-WORKDIR "/src/WebApplication1"
-RUN dotnet build "./WebApplication1.csproj" -c $BUILD_CONFIGURATION -o /app/build
+RUN dotnet publish -c Release -o /app/publish
 
-# This stage is used to publish the service project to be copied to the final stage
-FROM build AS publish
-ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./WebApplication1.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+# Stage 2: Build the Lambda container image using AWS’s base image for .NET 8
+FROM public.ecr.aws/lambda/dotnet:8
+WORKDIR /var/task
+COPY --from=build /app/publish .
 
-# This stage is used in production or when running from VS in regular mode (Default when not using the Debug configuration)
-FROM base AS final
-WORKDIR /app
-COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "WebApplication1.dll"]
+# The Lambda runtime will invoke the handler specified below.
+# This must be in the format: Assembly::TypeName::MethodName
+CMD ["WebApplication1::WebApplication1.LambdaEntryPoint::FunctionHandlerAsync"]
